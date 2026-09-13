@@ -1,46 +1,44 @@
-import chalk from "chalk";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const FRAMES = {
-  CONFUSED: {
-    color: chalk.gray,
-    dialogue: "Where is the .git folder?",
-    art: [
-      "  (?.?)  \n  /   \\  ",
-      "  (?.?)  \n   \\ /   "
-    ]
-  },
-  THRIVING: {
-    color: chalk.greenBright,
-    dialogue: "Commits are delicious!",
-    art: [
-      " ૮(˶˃ ᵕ ˂˶)ა \n   /|  |\\  ",
-      " ૮(˶˃ ᵕ ˂˶)ა \n   /| /|   "
-    ]
-  },
-  HUNGRY: {
-    color: chalk.yellow,
-    dialogue: "I need code... please...",
-    art: [
-      "  ( •_•)  \n  /|  |\\  ",
-      "  ( •_•)  \n  /| /|   "
-    ]
-  },
-  DEAD: {
-    color: chalk.red,
-    dialogue: "Git push to revive...",
-    art: [
-      "   💀    \n  /|\\   ",
-      "   💀    \n   /|\\  " // Slight rattle
-    ]
-  }
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const MOOD_ASSETS = {
+    CONFUSED: path.join(__dirname, "assets/pet_confused.gif"),
+    THRIVING: path.join(__dirname, "assets/pet_thriving.gif"),
+    HUNGRY:   path.join(__dirname, "assets/pet_hungry.gif"),
+    DEAD:     path.join(__dirname, "assets/pet_dead.gif")
+};
+
+const MOOD_DIALOGUE = {
+    CONFUSED: "Where is the .git folder?",
+    THRIVING: "The local repository commits are delicious! Keep feeding me code, aryapathak!",
+    HUNGRY:   "I need code... please... just a single fix commit...",
+    DEAD:     "Killed by inactivity. Git push to revive..."
 };
 
 export class TerminalPet {
   constructor() {
-    this.x = 0;
-    this.direction = 1; // 1 for right, -1 for left
-    this.frameIndex = 0;
+    this.x = 20;
+    this.y = 10;
+    this.vx = 0.5;
+    this.vy = 0.2;
     this.mood = "CONFUSED";
+    this.width = 8;
+    this.height = 4;
+    this.images = {};
+    this._loadImages();
+  }
+
+  _loadImages() {
+    for (const [mood, p] of Object.entries(MOOD_ASSETS)) {
+      if (fs.existsSync(p)) {
+        this.images[mood] = fs.readFileSync(p).toString('base64');
+      } else {
+        this.images[mood] = "";
+      }
+    }
   }
 
   updateMood(lastCommitEpoch) {
@@ -48,54 +46,31 @@ export class TerminalPet {
       this.mood = "CONFUSED";
       return;
     }
-
     const hoursSince = (Date.now() / 1000 - lastCommitEpoch) / 3600;
+    if (hoursSince < 12) this.mood = "THRIVING";
+    else if (hoursSince < 48) this.mood = "HUNGRY";
+    else this.mood = "DEAD";
+  }
 
-    if (hoursSince < 12) {
-      this.mood = "THRIVING";
-    } else if (hoursSince < 48) {
-      this.mood = "HUNGRY";
-    } else {
-      this.mood = "DEAD";
+  move(termWidth, termHeight) {
+    this.x += this.vx;
+    this.y += this.vy;
+
+    if (this.x > termWidth - this.width || this.x < 1) {
+      this.vx *= -1;
+    }
+    if (this.y > termHeight - this.height || this.y < 3) {
+      this.vy *= -1;
     }
   }
 
-  move() {
-    const termWidth = process.stdout.columns || 80;
-    const petWidth = 14; // Approximate width of the ASCII art
-
-    // Move
-    this.x += this.direction;
-
-    // Bounce off walls
-    if (this.x >= termWidth - petWidth) {
-      this.x = termWidth - petWidth;
-      this.direction = -1;
-    } else if (this.x <= 0) {
-      this.x = 0;
-      this.direction = 1;
-    }
-
-    // Advance animation frame
-    this.frameIndex = (this.frameIndex + 1) % 2;
+  getDialogue() {
+    return MOOD_DIALOGUE[this.mood];
   }
 
-  render() {
-    const state = FRAMES[this.mood];
-    const currentArt = state.art[this.frameIndex];
-    
-    // Create the blank space padding to push the pet to the correct X coordinate
-    const padding = " ".repeat(Math.max(0, this.x));
-
-    // Apply padding to all lines of the ASCII art
-    const paddedArt = currentArt
-      .split("\n")
-      .map(line => padding + line)
-      .join("\n");
-
-    const header = padding + state.color(`[ ${this.mood} ]`);
-    const chatBubble = padding + chalk.italic(state.dialogue);
-
-    return `\n${header}\n${paddedArt}\n${chatBubble}\n`;
+  getItermImage() {
+    const base64 = this.images[this.mood];
+    if (!base64) return "ERROR: No Image";
+    return `\x1b]1337;File=inline=1;width=${this.width};height=${this.height};preserveAspectRatio=1:${base64}\x07`;
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "gitagotchi",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "description": "A terminal git tamagotchi that feeds on your commits.",
   "bin": {

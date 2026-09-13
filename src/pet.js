@@ -56,12 +56,21 @@ export class TerminalPet {
     this.x += this.vx;
     this.y += this.vy;
 
-    if (this.x > termWidth - this.width || this.x < 1) {
+    // Leave a strict margin at the bottom to prevent iTerm from auto-scrolling
+    // when the image reaches the last terminal row.
+    const bottomMargin = 3; 
+
+    if (this.x > termWidth - this.width - 2 || this.x < 2) {
       this.vx *= -1;
     }
-    if (this.y > termHeight - this.height || this.y < 3) {
+    // Min Y changed to 4 because rows 1-3 are now used for UI Header, Dialogue, and Separator
+    if (this.y > termHeight - this.height - bottomMargin || this.y < 4) {
       this.vy *= -1;
     }
+    
+    // Clamp values just in case terminal resizes
+    this.x = Math.max(2, Math.min(this.x, termWidth - this.width - 2));
+    this.y = Math.max(4, Math.min(this.y, termHeight - this.height - bottomMargin));
   }
 
   getDialogue() {

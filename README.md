@@ -1,10 +1,10 @@
-# Gitagotchi 👾
+# gitagotchi 
 
 A virtual pet that lives in your terminal and feeds entirely on your git commits. If you stop pushing code, your pet gets sad, hungry, and eventually dies. Keep coding to keep it thriving.
 
-## Requirements
+## requirements
 
-⚠️ **IMPORTANT**: Gitagotchi renders actual HD GIFs natively in your terminal. It does NOT use blocky ASCII art fallbacks. 
+**IMPORTANT**: Gitagotchi renders actual HD GIFs natively in your terminal. It does NOT use blocky ASCII art fallbacks. 
 Because of this, it **REQUIRES iTerm2** (on macOS) or a **Sixel-compatible terminal**. Standard terminals like macOS Terminal.app or VS Code's integrated terminal will just print out raw image data!
 
 

@@ -1,6 +1,6 @@
 {
-  "name": "githunger",
-  "version": "1.0.0",
+  "name": "gitagotchi",
+  "version": "1.0.1",
   "type": "module",
   "description": "A terminal git tamagotchi that feeds on your commits.",
   "bin": {
